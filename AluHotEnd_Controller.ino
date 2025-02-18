@@ -25,9 +25,12 @@ void setup() {
 void loop() {
   // basic readout test, just print the current temp
   
-  Serial.print("C = "); 
-  Serial.println(thermocouple1.readCelsius());
+  float T1 = thermocouple1.readCelsius();
+  float T2 = thermocouple2.readCelsius();
+  float T3 = thermocouple3.readCelsius();
+
+  Serial.println("T1:" + String(T1) + "°C T2:" + String(T2) + "°C T3:" + String(T3) + "°C");
  
   // For the MAX6675 to update, you must delay AT LEAST 250ms between reads!
-  delay(1000);
+  delay(250);
 }
