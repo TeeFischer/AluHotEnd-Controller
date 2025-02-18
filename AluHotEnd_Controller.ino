@@ -2,20 +2,20 @@
 #include <PID_v1.h>
 
 // Pin definitions
-int thermoDO = 5;
-int thermoCLK = 6;
+int thermoSO = 5;
+int thermoSCK = 6;
 int thermoCS1 = 2;
 int thermoCS2 = 3;
 int thermoCS3 = 4;
 
 // MAX6675 objects for the thermocouples
-MAX6675 thermocouple1(thermoCLK, thermoCS1, thermoDO);
-MAX6675 thermocouple2(thermoCLK, thermoCS2, thermoDO);
-MAX6675 thermocouple3(thermoCLK, thermoCS3, thermoDO);
+MAX6675 thermocouple1(thermoSCK, thermoCS1, thermoSO);
+MAX6675 thermocouple2(thermoSCK, thermoCS2, thermoSO);
+MAX6675 thermocouple3(thermoSCK, thermoCS3, thermoSO);
 
 // PID control variables
 double T1, T1_Setpoint = 25.0, T1_Output;  // Setpoint for T1 temperature
-double Kp = 2, Ki = 5, Kd = 1;  // PID tuning parameters
+double Kp = 10, Ki = 1, Kd = 0;  // PID tuning parameters
 PID myPID(&T1, &T1_Output, &T1_Setpoint, Kp, Ki, Kd, DIRECT);
 
 // PWM Pin
@@ -42,7 +42,7 @@ void loop() {
   float T3 = thermocouple3.readCelsius();
 
   // Output the current temperatures to the serial monitor
-  Serial.println("T1: " + String(T1) + "°C T2: " + String(T2) + "°C T3: " + String(T3) + "°C");
+  Serial.println("T1:" + String(T1) + "°C T2:" + String(T2) + "°C T3:" + String(T3) + "°C PWM:" + String(T1_Output));
   
   // Compute the PID output for T1
   myPID.Compute();  // Calculate the new output for the PID control
