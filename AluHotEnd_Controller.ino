@@ -18,8 +18,15 @@ double T1, T1_Setpoint = 25.0, T1_Output;  // Setpoint for T1 temperature
 double Kp = 10, Ki = 1, Kd = 0;  // PID tuning parameters
 PID myPID(&T1, &T1_Output, &T1_Setpoint, Kp, Ki, Kd, DIRECT);
 
+bool pidEnabled = false;  // Variable to track whether PID is enabled or not
+
 // PWM Pin
 int pwmPin = 9;
+
+// Variables for time management
+long int lastTime = 0;
+long int thisTime = 0;
+#define waitTime   250  //in ms
 
 void setup() {
   // Initialize serial monitor
@@ -28,28 +35,63 @@ void setup() {
   // Wait to allow the MAX6675 to stabilize
   delay(500);
 
-  // Initialize the PID controller
-  myPID.SetMode(AUTOMATIC);  // Set PID mode to AUTOMATIC
+  // Initialize the PID controller in MANUAL mode (it will not control initially)
+  myPID.SetMode(MANUAL);  // PID is initially disabled (manual mode)
   myPID.SetOutputLimits(0, 255);  // Set the output limits for PWM (0 to 255)
   myPID.SetSampleTime(1000);  // Set the sample time to 1 second
   pinMode(pwmPin, OUTPUT);  // Set the PWM pin as an output
 }
 
 void loop() {
-  // Read temperatures from the thermocouples
-  T1 = thermocouple1.readCelsius();
-  float T2 = thermocouple2.readCelsius();
-  float T3 = thermocouple3.readCelsius();
+  // get current timestamp
+  thisTime = millis();
 
-  // Output the current temperatures to the serial monitor
-  Serial.println("T1:" + String(T1) + "°C T2:" + String(T2) + "°C T3:" + String(T3) + "°C PWM:" + String(T1_Output));
-  
-  // Compute the PID output for T1
-  myPID.Compute();  // Calculate the new output for the PID control
-  
-  // Set the PWM signal on pin 9 based on the PID output
-  analogWrite(pwmPin, T1_Output);
-  
-  // Wait to get the next temperature reading
-  delay(250);  // MAX6675 requires at least 250ms between readings
+  // Toggle PID controller state based on serial input or condition
+  if (Serial.available()) {
+    char input = Serial.read();  // Read the input character
+    if (input == 's') {  // If 's' is received, stop the PID
+      stopPID();
+    } 
+    else if (input == 'r') {  // If 'r' is received, start the PID
+      startPID();
+    }
+  }
+
+  // if enough time passed, enter this code block
+  if(thisTime - lastTime > waitTime){
+    // START OF WAITING CODE
+
+    // Read temperatures from the thermocouples
+    T1 = thermocouple1.readCelsius();
+    float T2 = thermocouple2.readCelsius();
+    float T3 = thermocouple3.readCelsius();
+
+    // Output the current temperatures to the serial monitor
+    Serial.println("T1:" + String(T1) + "°C T2:" + String(T2) + "°C T3:" + String(T3) + "°C PWM:" + String(T1_Output));
+    
+    // If PID is enabled, compute the PID output and control PWM
+    if (pidEnabled) {
+      myPID.Compute();  // Calculate the new output for the PID control
+      analogWrite(pwmPin, T1_Output);  // Set the PWM signal on pin 9 based on PID output
+    }
+    
+    // Set the PWM signal on pin 9 based on the PID output
+    analogWrite(pwmPin, T1_Output);
+
+    // END OF WAITING CODE
+    // update lastTime
+    lastTime = thisTime;
+  }
+}
+
+void stopPID() {
+  myPID.SetMode(MANUAL);  // Stop PID (set to manual mode)
+  pidEnabled = false;
+  Serial.println("PID Stopped.");
+}
+
+void startPID() {
+  myPID.SetMode(AUTOMATIC);  // Start PID (set to automatic mode)
+  pidEnabled = true;
+  Serial.println("PID Started.");
 }
