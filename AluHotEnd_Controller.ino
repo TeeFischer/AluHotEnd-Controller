@@ -13,7 +13,8 @@
 #define pwmPin 9
 
 // eStop Pin
-#define eStop 8
+#define eStopPin 8
+#define eStopTemp 500  // in Celsius
 
 // MAX6675 objects for the thermocouples
 MAX6675 thermocouple1(thermoSCK, thermoCS1, thermoSO);
@@ -45,14 +46,14 @@ void setup() {
   myPID.SetSampleTime(1000);  // Set the sample time to 1 second
   pinMode(pwmPin, OUTPUT);  // Set the PWM pin as an output
 
-  pinMode(eStop, INPUT_PULLUP);  // Set the PWM pin as an output
+  pinMode(eStopPin, INPUT_PULLUP);  // Set the PWM pin as an output
 }
 
 void loop() {
   // get current timestamp
   thisTime = millis();
 
-  if (digitalRead(eStop) == 0) {
+  if (digitalRead(eStopPin) == 0) {
     stopPID();
   }
 
@@ -82,11 +83,12 @@ void loop() {
     // If PID is enabled, compute the PID output and control PWM
     if (pidEnabled) {
       myPID.Compute();  // Calculate the new output for the PID control
-      analogWrite(pwmPin, T1_Output);  // Set the PWM signal on pin 9 based on PID output
+      analogWrite(pwmPin, T1_Output);  // Set the PWM signal based on PID output
     }
-    
-    // Set the PWM signal on pin 9 based on the PID output
-    analogWrite(pwmPin, T1_Output);
+
+    if ( T1 > eStopTemp){
+      stopPID();
+    }
 
     // END OF WAITING CODE
     // update lastTime
