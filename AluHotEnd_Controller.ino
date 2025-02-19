@@ -1,5 +1,6 @@
 #include "max6675.h"
 #include <PID_v1.h>
+#include "autotune.h"
 
 // Pin definitions
 // thermoelement modules Pin
