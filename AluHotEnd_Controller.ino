@@ -2,11 +2,18 @@
 #include <PID_v1.h>
 
 // Pin definitions
-int thermoSO = 5;
-int thermoSCK = 6;
-int thermoCS1 = 2;
-int thermoCS2 = 3;
-int thermoCS3 = 4;
+// thermoelement modules Pin
+#define thermoSO  5
+#define thermoSCK 6
+#define thermoCS1 2
+#define thermoCS2 3
+#define thermoCS3 4
+
+// PWM Pin
+#define pwmPin 9
+
+// eStop Pin
+#define eStop 8
 
 // MAX6675 objects for the thermocouples
 MAX6675 thermocouple1(thermoSCK, thermoCS1, thermoSO);
@@ -19,9 +26,6 @@ double Kp = 10, Ki = 1, Kd = 0;  // PID tuning parameters
 PID myPID(&T1, &T1_Output, &T1_Setpoint, Kp, Ki, Kd, DIRECT);
 
 bool pidEnabled = false;  // Variable to track whether PID is enabled or not
-
-// PWM Pin
-int pwmPin = 9;
 
 // Variables for time management
 long int lastTime = 0;
@@ -40,11 +44,17 @@ void setup() {
   myPID.SetOutputLimits(0, 255);  // Set the output limits for PWM (0 to 255)
   myPID.SetSampleTime(1000);  // Set the sample time to 1 second
   pinMode(pwmPin, OUTPUT);  // Set the PWM pin as an output
+
+  pinMode(eStop, INPUT_PULLUP);  // Set the PWM pin as an output
 }
 
 void loop() {
   // get current timestamp
   thisTime = millis();
+
+  if (digitalRead(eStop) == 0) {
+    stopPID();
+  }
 
   // Toggle PID controller state based on serial input or condition
   if (Serial.available()) {
@@ -52,7 +62,7 @@ void loop() {
     if (input == 's') {  // If 's' is received, stop the PID
       stopPID();
     } 
-    else if (input == 'r') {  // If 'r' is received, start the PID
+    else if (input == 'a') {  // If 'r' is received, start the PID
       startPID();
     }
   }
@@ -86,6 +96,11 @@ void loop() {
 
 void stopPID() {
   myPID.SetMode(MANUAL);  // Stop PID (set to manual mode)
+
+  // reset the PID value and set the output
+  T1_Output = 0;
+  analogWrite(pwmPin, T1_Output);
+
   pidEnabled = false;
   Serial.println("PID Stopped.");
 }
