@@ -28,6 +28,9 @@ double Kp = 10, Ki = 1, Kd = 0;  // PID tuning parameters
 PID myPID(&T1, &T1_Output, &T1_Setpoint, Kp, Ki, Kd, DIRECT);
 
 bool pidEnabled = false;  // Variable to track whether PID is enabled or not
+#define autoTuneTarget 400
+#define autoTuneCycles 4
+#define autoTuneResult false
 
 // Variables for time management
 long int lastTime = 0;
@@ -66,6 +69,9 @@ void loop() {
     } 
     else if (input == 'a') {  // If 'r' is received, start the PID
       startPID();
+    }
+    else if (input == 't') {  // If 'r' is received, start the PID
+      PID_autotune(autoTuneTarget, autoTuneCycles, autoTuneResult);
     }
   }
 

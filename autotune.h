@@ -55,20 +55,24 @@ struct raw_pid_t {
   double d;
 };
 
+uint8_t T1OutputTune;
+#define _pwmPin 9
+
 // Set Heater Value
 // write what ever is needed to set your heater
-void SHV(uint8_t pwm) {
-  //#############
+void SHV(uint8_t _value) {
+  T1OutputTune = _value;
+  analogWrite(_pwmPin, T1OutputTune);
 }
 
 // returns the HeaterTemp in degrees
 // write what ever is needed to set your heater
 float degHeater(){
-  //#############
+  return thermocouple1.readCelsius();
 }
 
 void print_heater_state(){
-  //#############  
+  Serial.println("Heater set to " + String(T1OutputTune) + " of " + String(PID_MAX));
 }
 
 void _set_heater_pid(raw_pid_t _tune_pid){
