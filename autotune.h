@@ -8,28 +8,15 @@
   * temperature to succeed.
   */
 
-#define STR_PID_AUTOTUNE "In PID_Autotune: "
-#define STR_PID_TEMP_TOO_HIGH "ERROR PID_TEMP_TOO_HIGH"
-#define STR_PID_AUTOTUNE_START "PID_AUTOTUNE_START"
-#define STR_BIAS "Bias = "
-#define STR_D_COLON "; "
-#define STR_T_MIN "T_min = "
-#define STR_T_MAX "T_max = "
-#define STR_KU "K_u = "
-#define STR_TU "T_u = "
-#define STR_KU "K_u = "
-#define STR_CLASSIC_PID "CLASSIC_PID"
-#define STR_KP "K_P = "
-#define STR_KI "K_I = "
-#define STR_KD "K_D = "
-#define STR_PID_TIMEOUT "STR_PID_TIMEOUT"
-#define STR_PID_AUTOTUNE_FINISHED "STR_PID_AUTOTUNE_FINISHED"
-
+// settings
 #define hotend_max_target 900
 #define PID_MAX 255
 #define externalWaitForHeatup false
 #define MAX_OVERSHOOT_PID_AUTOTUNE 30
 #define PID_AUTOTUNE_MAX_CYCLE_MINS 20L
+
+//#define _pwmPin 9
+#include "pins_Controllino_Maxi.h"
 
 // needed macros
 #define NOLESS(a, b) if (a < b) a = b;
@@ -49,6 +36,24 @@
 #define _MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MIN_TO_MS(mins) ((mins) * 60000L)
 
+// Text Macros
+#define STR_PID_AUTOTUNE "In PID_Autotune: "
+#define STR_PID_TEMP_TOO_HIGH "ERROR PID_TEMP_TOO_HIGH"
+#define STR_PID_AUTOTUNE_START "PID_AUTOTUNE_START"
+#define STR_BIAS "Bias = "
+#define STR_D_COLON "; "
+#define STR_T_MIN "T_min = "
+#define STR_T_MAX "T_max = "
+#define STR_KU "K_u = "
+#define STR_TU "T_u = "
+#define STR_KU "K_u = "
+#define STR_CLASSIC_PID "CLASSIC_PID"
+#define STR_KP "K_P = "
+#define STR_KI "K_I = "
+#define STR_KD "K_D = "
+#define STR_PID_TIMEOUT "STR_PID_TIMEOUT"
+#define STR_PID_AUTOTUNE_FINISHED "STR_PID_AUTOTUNE_FINISHED"
+
 struct raw_pid_t {
   double p;
   double i;
@@ -56,19 +61,18 @@ struct raw_pid_t {
 };
 
 uint8_t T1OutputTune;
-#define _pwmPin 9
 
 // Set Heater Value
 // write what ever is needed to set your heater
 void SHV(uint8_t _value) {
   T1OutputTune = _value;
-  analogWrite(_pwmPin, T1OutputTune);
+  analogWrite(pwmPin, T1OutputTune);
 }
 
 // returns the HeaterTemp in degrees
 // write what ever is needed to set your heater
 float degHeater(){
-  return thermocouple1.readCelsius();
+//  return thermocouple1.readCelsius();
 }
 
 void print_heater_state(){

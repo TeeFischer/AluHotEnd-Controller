@@ -1,26 +1,16 @@
-#include "max6675.h"
-#include <PID_v1.h>
+#include "max6675.h"  // by Adafruit
+#include <PID_v1.h>   // by Brett Beauregard
 #include "autotune.h"
 
-// Pin definitions
-// thermoelement modules Pin
-#define thermoSO  5
-#define thermoSCK 6
-#define thermoCS1 2
-#define thermoCS2 3
-#define thermoCS3 4
+//#include "pins_Uno.h"
+#include "pins_Controllino_Maxi.h"
 
-// PWM Pin
-#define pwmPin 9
-
-// eStop Pin
-#define eStopPin 8
 #define eStopTemp 500  // in Celsius
 
 // MAX6675 objects for the thermocouples
 MAX6675 thermocouple1(thermoSCK, thermoCS1, thermoSO);
-MAX6675 thermocouple2(thermoSCK, thermoCS2, thermoSO);
-MAX6675 thermocouple3(thermoSCK, thermoCS3, thermoSO);
+//MAX6675 thermocouple2(thermoSCK, thermoCS2, thermoSO);
+//MAX6675 thermocouple3(thermoSCK, thermoCS3, thermoSO);
 
 // PID control variables
 double T1, T1_Setpoint = 25.0, T1_Output;  // Setpoint for T1 temperature
@@ -37,9 +27,16 @@ long int lastTime = 0;
 long int thisTime = 0;
 #define waitTime   250  //in ms
 
+#if defined(CONTROLLINO_MAXI_AUTOMATION)
+  #define eStopValue LOW
+#else
+  #define eStopValue HIGH
+#endif
+
 void setup() {
   // Initialize serial monitor
   Serial.begin(115200);
+  Serial.print("Starting...");
   
   // Wait to allow the MAX6675 to stabilize
   delay(500);
@@ -49,15 +46,23 @@ void setup() {
   myPID.SetOutputLimits(0, 255);  // Set the output limits for PWM (0 to 255)
   myPID.SetSampleTime(1000);  // Set the sample time to 1 second
   pinMode(pwmPin, OUTPUT);  // Set the PWM pin as an output
+  #if defined(CONTROLLINO_MAXI_AUTOMATION) 
+    pinMode(eStopPin, INPUT);  // Set the PWM pin as an output
+  #else
+    pinMode(eStopPin, INPUT_PULLUP);  // Set the PWM pin as an output
+  #endif
 
-  pinMode(eStopPin, INPUT_PULLUP);  // Set the PWM pin as an output
+   Serial.println("Done!");
 }
 
 void loop() {
   // get current timestamp
   thisTime = millis();
 
-  if (digitalRead(eStopPin) == 0) {
+  if (digitalRead(eStopPin) == eStopValue) {
+    if(pidEnabled){
+      Serial.println("E-Stop Triggered!");
+    }
     stopPID();
   }
 
@@ -81,8 +86,8 @@ void loop() {
 
     // Read temperatures from the thermocouples
     T1 = thermocouple1.readCelsius();
-    float T2 = thermocouple2.readCelsius();
-    float T3 = thermocouple3.readCelsius();
+    float T2 = 0; // thermocouple2.readCelsius();
+    float T3 = 0; // thermocouple3.readCelsius();
 
     // Output the current temperatures to the serial monitor
     Serial.println("T1:" + String(T1) + "°C T2:" + String(T2) + "°C T3:" + String(T3) + "°C PWM:" + String(T1_Output));
@@ -110,8 +115,11 @@ void stopPID() {
   T1_Output = 0;
   analogWrite(pwmPin, T1_Output);
 
-  pidEnabled = false;
-  Serial.println("PID Stopped.");
+  if (pidEnabled){
+    Serial.println("PID Stopped.");
+    pidEnabled = false;
+  }
+  
 }
 
 void startPID() {
