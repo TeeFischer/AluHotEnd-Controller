@@ -29,7 +29,6 @@ void SHV(uint8_t _value) {
 // returns the HeaterTemp in degrees
 // write what ever is needed to set your heater
 float degHeater(){
-  Serial.println("Heater measured" + String( thermocouple1.readCelsius()));
   return thermocouple1.readCelsius();
 }
 
