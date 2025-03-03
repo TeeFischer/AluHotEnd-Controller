@@ -9,12 +9,12 @@
 #define eStopTemp 500  // in Celsius
 
 // autotune settings
-#define autoTuneTarget 400    // target temp for the heating cycles in °C
 #define autoTuneCycles 4      // number of heating cycles
 #define autoTuneResult false  // automatically save the results of the autotuning
 
 // PID control variables
 double T1, T1_Setpoint = 400.0, T1_Output;  // Setpoint for T1 temperature
+double T2=0, T3=0;
 double Kp = 10, Ki = 1, Kd = 0;  // PID tuning parameters
 PID myPID(&T1, &T1_Output, &T1_Setpoint, Kp, Ki, Kd, DIRECT);
 
@@ -82,7 +82,10 @@ void loop() {
       startPID();
     }
     else if (input == 't') {  // If 't' is received, start the autotuning
-      PID_autotune(autoTuneTarget, autoTuneCycles, autoTuneResult);
+      PID_autotune(T1_Setpoint, autoTuneCycles, autoTuneResult);
+    }
+    else if (input == 'z') {  // If 't' is received, set the target tmep
+      setTargetTemp();
     }
   }
 
@@ -92,18 +95,11 @@ void loop() {
 
     // Read temperatures from the thermocouples
     T1 = thermocouple1.readCelsius();
-    float T2 = 0; // thermocouple2.readCelsius();
-    float T3 = 0; // thermocouple3.readCelsius();
+    // T2 = thermocouple2.readCelsius();
+    // T3 = thermocouple3.readCelsius();
 
     // Output the current temperatures to the serial monitor
-    // Erstelle einen String mit den Werten und sende ihn auf einmal
-    String output = "T1:" + String(T1) + 
-    "°C T2:" + String(T2) +
-    "°C T3:" + String(T3) +
-    "°C PWM:" + String(T1_Output) +
-    " Time:" + String(millis());
-    
-    Serial.println(output);
+    printInfo();
     
     // If PID is enabled, compute the PID output and control PWM
     if (pidEnabled) {
@@ -119,6 +115,18 @@ void loop() {
     // update lastTime
     lastTime = thisTime;
   }
+}
+
+// Output the current temperatures to the serial monitor
+void printInfo(){
+  // Erstelle einen String mit den Werten und sende ihn auf einmal
+    String output = "T1:" + String(T1) + 
+    " °C T2:" + String(T2) +
+    " °C T3:" + String(T3) +
+    " °C PWM:" + String(T1_Output) +
+    " Time:" + String(millis());
+    
+    Serial.println(output);
 }
 
 // This function stops the PID calculation and shuts off the heater
@@ -143,5 +151,28 @@ void startPID() {
   pidEnabled = true;
   digitalWrite(CONTROLLINO_R8, HIGH);
   digitalWrite(CONTROLLINO_R9, HIGH);
-  Serial.println("PID Started.");
+  Serial.println("PID Started. Target=" + String(T1_Setpoint));
+}
+
+void setTargetTemp(){
+  float input = 0;
+  Serial.println("Enter target temperature (in °C):");
+  
+  while(true){
+    if (Serial.available() > 0) {
+      input = Serial.parseFloat();
+    }
+    if(input != 0){
+      break;
+    }
+  }
+
+  if(input == 0){
+    Serial.println("Error: No target was entered!");
+  }
+  // Gib die Eingabe aus
+  Serial.print("You entered: ");
+  Serial.println(input);
+
+  T1_Setpoint = float(input);
 }
