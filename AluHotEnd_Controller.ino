@@ -2,30 +2,33 @@
 #include <PID_v1.h>   // by Brett Beauregard
 #include "autotune.h"
 
+// setting, which pins to be used
 //#include "pins_Uno.h"
 #include "pins_Controllino_Maxi.h"
 
 #define eStopTemp 500  // in Celsius
 
-// MAX6675 objects for the thermocouples
-MAX6675 thermocouple1(thermoSCK, thermoCS1, thermoSO);
-//MAX6675 thermocouple2(thermoSCK, thermoCS2, thermoSO);
-//MAX6675 thermocouple3(thermoSCK, thermoCS3, thermoSO);
+// autotune settings
+#define autoTuneTarget 400    // target temp for the heating cycles in °C
+#define autoTuneCycles 4      // number of heating cycles
+#define autoTuneResult false  // automatically save the results of the autotuning
 
 // PID control variables
-double T1, T1_Setpoint = 25.0, T1_Output;  // Setpoint for T1 temperature
+double T1, T1_Setpoint = 400.0, T1_Output;  // Setpoint for T1 temperature
 double Kp = 10, Ki = 1, Kd = 0;  // PID tuning parameters
 PID myPID(&T1, &T1_Output, &T1_Setpoint, Kp, Ki, Kd, DIRECT);
 
 bool pidEnabled = false;  // Variable to track whether PID is enabled or not
-#define autoTuneTarget 400
-#define autoTuneCycles 4
-#define autoTuneResult false
 
 // Variables for time management
 long int lastTime = 0;
 long int thisTime = 0;
 #define waitTime   250  //in ms
+
+// MAX6675 objects for the thermocouples
+MAX6675 thermocouple1(thermoSCK, thermoCS1, thermoSO);
+//MAX6675 thermocouple2(thermoSCK, thermoCS2, thermoSO);
+//MAX6675 thermocouple3(thermoSCK, thermoCS3, thermoSO);
 
 #if defined(CONTROLLINO_MAXI_AUTOMATION)
   #define eStopValue LOW
@@ -52,13 +55,16 @@ void setup() {
     pinMode(eStopPin, INPUT_PULLUP);  // Set the PWM pin as an output
   #endif
 
-   Serial.println("Done!");
+  digitalWrite(CONTROLLINO_R0, HIGH);
+
+  Serial.println("Done!");
 }
 
 void loop() {
   // get current timestamp
   thisTime = millis();
 
+  // if the eStop is pressed, stop the PID Cycle and heaters
   if (digitalRead(eStopPin) == eStopValue) {
     if(pidEnabled){
       Serial.println("E-Stop Triggered!");
@@ -75,7 +81,7 @@ void loop() {
     else if (input == 'a') {  // If 'r' is received, start the PID
       startPID();
     }
-    else if (input == 't') {  // If 'r' is received, start the PID
+    else if (input == 't') {  // If 't' is received, start the autotuning
       PID_autotune(autoTuneTarget, autoTuneCycles, autoTuneResult);
     }
   }
@@ -90,7 +96,14 @@ void loop() {
     float T3 = 0; // thermocouple3.readCelsius();
 
     // Output the current temperatures to the serial monitor
-    Serial.println("T1:" + String(T1) + "°C T2:" + String(T2) + "°C T3:" + String(T3) + "°C PWM:" + String(T1_Output));
+    // Erstelle einen String mit den Werten und sende ihn auf einmal
+    String output = "T1:" + String(T1) + 
+    "°C T2:" + String(T2) +
+    "°C T3:" + String(T3) +
+    "°C PWM:" + String(T1_Output) +
+    " Time:" + String(millis());
+    
+    Serial.println(output);
     
     // If PID is enabled, compute the PID output and control PWM
     if (pidEnabled) {
@@ -108,22 +121,27 @@ void loop() {
   }
 }
 
+// This function stops the PID calculation and shuts off the heater
 void stopPID() {
   myPID.SetMode(MANUAL);  // Stop PID (set to manual mode)
 
-  // reset the PID value and set the output
+  // reset the PID-Output value and write the output
   T1_Output = 0;
   analogWrite(pwmPin, T1_Output);
+  digitalWrite(CONTROLLINO_R8, LOW);
+  digitalWrite(CONTROLLINO_R9, LOW);
 
+  // print the status once
   if (pidEnabled){
     Serial.println("PID Stopped.");
     pidEnabled = false;
-  }
-  
+  } 
 }
 
 void startPID() {
   myPID.SetMode(AUTOMATIC);  // Start PID (set to automatic mode)
   pidEnabled = true;
+  digitalWrite(CONTROLLINO_R8, HIGH);
+  digitalWrite(CONTROLLINO_R9, HIGH);
   Serial.println("PID Started.");
 }
