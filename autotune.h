@@ -25,7 +25,7 @@ extern MAX6675 thermocouple1;
 // needed macros
 #define NOLESS(a, b) if (a < b) a = b;
 #define NOMORE(a, b) if (a > b) a = b;
-#define ELAPSED(ms, time) ((millis() - (time)) >= (ms))
+#define ELAPSED(ms, time) ( millis() >= ms )
 #define LIMIT(value, lower, upper) if (value < lower) value = lower; else if (value > upper) value = upper;
 #define SERIAL_ECHOPGM(...) { \
     char buffer[256]; \
