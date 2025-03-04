@@ -23,13 +23,14 @@ uint8_t T1OutputTune;
 // write what ever is needed to set your heater
 void SHV(uint8_t _value) {
   T1OutputTune = _value;
-  analogWrite(pwmPin, T1OutputTune);
+  setHeaterValues(T1OutputTune);
 }
 
 // returns the HeaterTemp in degrees
 // write what ever is needed to set your heater
 float degHeater(){
-  return thermocouple1.readCelsius();
+  
+  return readTemps();
 }
 
 void print_heater_state(){

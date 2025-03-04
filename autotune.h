@@ -7,6 +7,8 @@
   * Needs sufficient heater power to make some overshoot at target
   * temperature to succeed.
   */
+
+// TODO fix autotune
   
 #ifndef AUTOTUNE_H
 #define AUTOTUNE_H
@@ -20,6 +22,8 @@
 
 // include extern referenzes
 extern void printInfo();  // this function is defined in main.ino
+extern void setHeaterValues(uint8_t _value);
+extern float readTemps();
 extern MAX6675 thermocouple1; 
 
 // needed macros

@@ -93,10 +93,7 @@ void loop() {
   if(thisTime - lastTime > waitTime){
     // START OF WAITING CODE
 
-    // Read temperatures from the thermocouples
-    T1 = thermocouple1.readCelsius();
-    // T2 = thermocouple2.readCelsius();
-    // T3 = thermocouple3.readCelsius();
+    readTemps();
 
     // Output the current temperatures to the serial monitor
     printInfo();
@@ -104,7 +101,7 @@ void loop() {
     // If PID is enabled, compute the PID output and control PWM
     if (pidEnabled) {
       myPID.Compute();  // Calculate the new output for the PID control
-      analogWrite(pwmPin, T1_Output);  // Set the PWM signal based on PID output
+      setHeaterValues(T1_Output);
     }
 
     if ( T1 > eStopTemp){
@@ -115,6 +112,20 @@ void loop() {
     // update lastTime
     lastTime = thisTime;
   }
+}
+
+float readTemps(){
+  // Read temperatures from the thermocouples
+  T1 = thermocouple1.readCelsius();
+  // T2 = thermocouple2.readCelsius();
+  // T3 = thermocouple3.readCelsius();
+
+  return T1;
+}
+
+void setHeaterValues(uint8_t _value){
+  T1_Output = _value;
+  analogWrite(pwmPin, _value);  
 }
 
 // Output the current temperatures to the serial monitor
