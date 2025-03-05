@@ -18,6 +18,8 @@
 #define PID_AUTOTUNE_MAX_CYCLE_MINS 20L
 
 uint8_t T1OutputTune;
+float lastTemp = 0.0;
+long lastTempTime = 0;
 
 // Set Heater Value
 // write what ever is needed to set your heater
@@ -27,10 +29,16 @@ void SHV(uint8_t _value) {
 }
 
 // returns the HeaterTemp in degrees
-// write what ever is needed to set your heater
+// write what ever is needed to read your heater
 float degHeater(){
-  
-  return readTemps();
+  float t;
+  if(ELAPSED(millis(),lastTempTime+250)){
+    t = readTemps();
+    lastTemp = t;
+  } else{
+    t = lastTemp;
+  }
+  return t;
 }
 
 void print_heater_state(){
