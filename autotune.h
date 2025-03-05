@@ -14,22 +14,17 @@
 #define AUTOTUNE_H
 
 #include <Arduino.h>
-#include "max6675.h"
-
-// include a file for pin allocation
-//#define _pwmPin 9
-#include "pins_Controllino_Maxi.h"
 
 // include extern referenzes
-extern void printInfo();  // this function is defined in main.ino
+// these functions is defined in main.ino
+extern void printInfo();
 extern void setHeaterValues(uint8_t _value);
 extern float readTemps();
-extern MAX6675 thermocouple1; 
 
 // needed macros
 #define NOLESS(a, b) if (a < b) a = b;
 #define NOMORE(a, b) if (a > b) a = b;
-#define ELAPSED(ms, time) ( millis() >= ms )
+#define ELAPSED(ms, time) ( ms >= time )
 #define LIMIT(value, lower, upper) if (value < lower) value = lower; else if (value > upper) value = upper;
 #define SERIAL_ECHOPGM(...) { \
     char buffer[256]; \
