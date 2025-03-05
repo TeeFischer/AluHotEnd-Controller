@@ -127,6 +127,11 @@ float readTemps(){
 void setHeaterValues(uint8_t _value){
   T1_Output = _value;
   analogWrite(pwmPin, _value);  
+
+  #if defined(CONTROLLINO_MAXI_AUTOMATION) 
+  digitalWrite(CONTROLLINO_R8, HIGH);  // activate heater relays
+  digitalWrite(CONTROLLINO_R9, HIGH);
+  #endif
 }
 
 // Output the current temperatures to the serial monitor
@@ -148,8 +153,11 @@ void stopPID() {
   // reset the PID-Output value and write the output
   T1_Output = 0;
   analogWrite(pwmPin, T1_Output);
-  digitalWrite(CONTROLLINO_R8, LOW);
+
+  #if defined(CONTROLLINO_MAXI_AUTOMATION) 
+  digitalWrite(CONTROLLINO_R8, LOW);  // deactivate heater relays
   digitalWrite(CONTROLLINO_R9, LOW);
+  #endif
 
   // print the status once
   if (pidEnabled){
@@ -161,8 +169,12 @@ void stopPID() {
 void startPID() {
   myPID.SetMode(AUTOMATIC);  // Start PID (set to automatic mode)
   pidEnabled = true;
-  digitalWrite(CONTROLLINO_R8, HIGH);
+
+  #if defined(CONTROLLINO_MAXI_AUTOMATION) 
+  digitalWrite(CONTROLLINO_R8, HIGH);  // activate heater relays
   digitalWrite(CONTROLLINO_R9, HIGH);
+  #endif
+
   Serial.println("PID Started. Target=" + String(T1_Setpoint));
 }
 

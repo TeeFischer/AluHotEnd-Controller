@@ -32,9 +32,11 @@ void SHV(uint8_t _value) {
 // write what ever is needed to read your heater
 float degHeater(){
   float t;
-  if(ELAPSED(millis(),lastTempTime+250)){
+  long ms = millis();
+  if(ELAPSED(ms,lastTempTime+250)){
     t = readTemps();
     lastTemp = t;
+    lastTempTime = ms;
   } else{
     t = lastTemp;
   }
