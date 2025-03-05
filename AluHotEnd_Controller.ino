@@ -6,7 +6,7 @@
 //#include "pins_Uno.h"
 #include "pins_Controllino_Maxi.h"
 
-#define eStopTemp 500  // in Celsius
+#define eStopTemp 800  // in Celsius
 
 // autotune settings
 #define autoTuneCycles 4      // number of heating cycles
@@ -82,6 +82,7 @@ void loop() {
       startPID();
     }
     else if (input == 't') {  // If 't' is received, start the autotuning
+      if (pidEnabled){stopPID();}
       PID_autotune(T1_Setpoint, autoTuneCycles, autoTuneResult);
     }
     else if (input == 'z') {  // If 't' is received, set the target tmep
@@ -120,7 +121,7 @@ float readTemps(){
   // T2 = thermocouple2.readCelsius();
   // T3 = thermocouple3.readCelsius();
 
-  return T1;
+  return float(T1);
 }
 
 void setHeaterValues(uint8_t _value){
@@ -181,8 +182,12 @@ void setTargetTemp(){
   if(input == 0){
     Serial.println("Error: No target was entered!");
   }
+  else if(input > eStopTemp){
+    input = eStopTemp;
+    Serial.println("You entered " + String(input) + " °C but eStopTemp is " + String(eStopTemp) + " °C!");
+  }
   // Gib die Eingabe aus
-  Serial.print("You entered: ");
+  Serial.print("Target set to: ");
   Serial.println(input);
 
   T1_Setpoint = float(input);
