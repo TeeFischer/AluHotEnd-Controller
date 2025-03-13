@@ -26,16 +26,30 @@ extern float readTemps();
 #define NOMORE(a, b) if (a > b) a = b;
 #define ELAPSED(ms, time) ( ms >= time )
 #define LIMIT(value, lower, upper) if (value < lower) value = lower; else if (value > upper) value = upper;
-#define SERIAL_ECHOPGM(...) { \
-    char buffer[256]; \
-    snprintf(buffer, sizeof(buffer), __VA_ARGS__); \
-    Serial.print(buffer); \
-}
+
+// chatGPT macros
+
+#ifndef PRINT_ARGS_H
+#define PRINT_ARGS_H
+
+// Template für die allgemeine Ausgabe
+template <typename T>
+void printArg(T arg);
+
+// Funktionsdeklarationen für Template-Spezialisierungen
+template <>
+void printArg<const char*>(const char* arg);
+
+template <typename... Args>
+void SERIAL_ECHOPGM(Args... args);
+
+#endif
+
 #define SERIAL_ECHOLNPGM(...) { \
-    char buffer[256]; \
-    snprintf(buffer, sizeof(buffer), __VA_ARGS__); \
-    Serial.println(buffer); \
+  SERIAL_ECHOPGM(__VA_ARGS__); \
+  Serial.println(); \
 }
+
 #define _MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MIN_TO_MS(mins) ((mins) * 60000L)
 
@@ -61,6 +75,7 @@ extern float readTemps();
 void SHV(uint8_t _value);
 float degHeater();
 void PID_autotune(const float target, const int8_t ncycles, const bool set_result = false);
+void testPrint();
 
 // Struktur für die PID-Werte
 struct raw_pid_t {

@@ -10,6 +10,30 @@
 
 #include "autotune.h"
 
+// Allgemeine Template-Definition für printArg
+template <typename T>
+void printArg(T arg) {
+    Serial.print(arg);
+}
+
+// Template-Spezialisierung für `const char*` (String)
+template <>
+void printArg<const char*>(const char* arg) {
+    Serial.print(arg);
+}
+
+// Funktion zur Ausgabe von Variadic Arguments
+template <typename... Args>
+void SERIAL_ECHOPGM(Args... args) {
+    (printArg(args), ...);  // Fold-Expression für Variadic Templates
+}
+
+// Diese expliziten Instanziierungen sind nötig, damit der Code für `SERIAL_ECHOPGM` funktioniert
+template void printArg<int>(int);
+template void printArg<float>(float);
+template void printArg<const char*>(const char*);
+template void printArg<String>(String);
+
 // settings
 #define hotend_max_target 900
 #define PID_MAX 255
@@ -53,6 +77,11 @@ void _set_heater_pid(raw_pid_t _tune_pid){
   double p_value = _tune_pid.p;
   double i_value = _tune_pid.i;
   double d_value = _tune_pid.d;
+}
+
+void testPrint(){
+  float f = 1.1;
+  SERIAL_ECHOLNPGM("Kp ", f);
 }
 
 // target in Celsius
