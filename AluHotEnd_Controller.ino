@@ -3,8 +3,8 @@
 #include "autotune.h"
 
 // setting, which pins to be used
-//#include "pins_Uno.h"
-#include "pins_Controllino_Maxi.h"
+#include "pins_Uno.h"
+//#include "pins_Controllino_Maxi.h"
 
 #define eStopTemp 800  // in Celsius
 
@@ -51,11 +51,11 @@ void setup() {
   pinMode(pwmPin, OUTPUT);  // Set the PWM pin as an output
   #if defined(CONTROLLINO_MAXI_AUTOMATION) 
     pinMode(eStopPin, INPUT);  // Set the PWM pin as an output
+    digitalWrite(CONTROLLINO_R0, HIGH);
   #else
     pinMode(eStopPin, INPUT_PULLUP);  // Set the PWM pin as an output
+   
   #endif
-
-  digitalWrite(CONTROLLINO_R0, HIGH);
 
   Serial.println("Done!");
 }
@@ -87,6 +87,9 @@ void loop() {
     }
     else if (input == 'z') {  // If 't' is received, set the target tmep
       setTargetTemp();
+    }
+    else if (input == 'p') {  // test printout
+      testPrint();
     }
   }
 
