@@ -22,12 +22,12 @@
  */
 
 #include "Arduino.h"
-#include <Controllino.h>
 
 // Pins:
-#define stepPin CONTROLLINO_D0 //mcu > STEP pin
-#define dirPin CONTROLLINO_D1  //mcu > DIR pin
-#define endstopPin CONTROLLINO_IN0
+//#define stepPin CONTROLLINO_D0 //mcu > STEP pin
+//#define dirPin CONTROLLINO_D1  //mcu > DIR pin
+#include "pins_Uno.h"
+#define endstopPin 99
 
 // Parameter:
 #define endstopNormallyOpen true
