@@ -1,6 +1,7 @@
 #include "max6675.h"  // by Adafruit
 #include <PID_v1.h>   // by Brett Beauregard
 #include "autotune.h"
+#include "fastStepper.h"
 
 // setting, which pins to be used
 //#include "pins_Uno.h"
@@ -91,6 +92,9 @@ void loop() {
     else if (input == 'p') {  // test printout
       testPrint();
     }
+    else if (input == 'm') {  // test motor
+      testMotor();
+    }
   }
 
   // if enough time passed, enter this code block
@@ -116,6 +120,19 @@ void loop() {
     // update lastTime
     lastTime = thisTime;
   }
+}
+
+void testMotor(){
+  setupStepper();
+  moveToPosition(100);
+  Serial.println("Motor forward...");
+  while(isMotorRunning())
+  {
+    printInfo();
+    delay(100);
+  }
+  moveToPosition(0);
+  Serial.println("Motor forward...");
 }
 
 float readTemps(){
@@ -144,6 +161,7 @@ void printInfo(){
     " °C T2:" + String(T2) +
     " °C T3:" + String(T3) +
     " °C PWM:" + String(T1_Output) +
+    " Motor:" + String(getPosition()) +
     " Time:" + String(millis());
     
     Serial.println(output);
