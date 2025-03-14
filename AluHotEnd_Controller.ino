@@ -3,8 +3,8 @@
 #include "autotune.h"
 
 // setting, which pins to be used
-#include "pins_Uno.h"
-//#include "pins_Controllino_Maxi.h"
+//#include "pins_Uno.h"
+#include "pins_Controllino_Maxi.h"
 
 #define eStopTemp 800  // in Celsius
 
@@ -15,7 +15,7 @@
 // PID control variables
 double T1, T1_Setpoint = 400.0, T1_Output;  // Setpoint for T1 temperature
 double T2=0, T3=0;
-double Kp = 10, Ki = 1, Kd = 0;  // PID tuning parameters
+double Kp = 13.58, Ki = 0.66, Kd = 70.11;  // PID tuning parameters
 PID myPID(&T1, &T1_Output, &T1_Setpoint, Kp, Ki, Kd, DIRECT);
 
 bool pidEnabled = false;  // Variable to track whether PID is enabled or not
