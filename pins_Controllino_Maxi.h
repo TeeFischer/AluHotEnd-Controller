@@ -19,5 +19,6 @@
 #define eStopPin CONTROLLINO_DI0
 
 // motor Pins
-#define dirPin 10
-#define stepPin 11
+#define dirPin CONTROLLINO_D2
+#define stepPin CONTROLLINO_D0
+#define endstopPin 99

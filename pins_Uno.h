@@ -18,3 +18,4 @@
 // motor Pins
 #define dirPin 10
 #define stepPin 11
+#define endstopPin 99
