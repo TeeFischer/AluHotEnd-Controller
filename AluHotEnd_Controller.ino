@@ -1,6 +1,7 @@
 #include "max6675.h"  // by Adafruit
 #include <PID_v1.h>   // by Brett Beauregard
 #include "autotune.h"
+#include "fastStepper.h"
 
 // setting, which pins to be used
 #include "pins_Uno.h"

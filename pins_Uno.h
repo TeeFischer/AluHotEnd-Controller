@@ -14,3 +14,7 @@
 
 // eStop Pin
 #define eStopPin 8
+
+// motor Pins
+#define dirPin 10
+#define stepPin 11
