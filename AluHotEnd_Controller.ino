@@ -4,7 +4,11 @@
 #include "pins.h"
 #include "fastStepper.h"
 
+// predefining a function, that otherwise bothers the compiler
+void moveMotor(String inputString = ""); // Standardwert festgelegt
+
 #define eStopTemp 800  // in Celsius
+#define startSpeed 5
 
 // autotune settings
 #define autoTuneCycles 4      // number of heating cycles
@@ -42,6 +46,11 @@ void setup() {
   // Wait to allow the MAX6675 to stabilize
   delay(500);
 
+  // setup the timer for the stepper class
+  setupStepper();
+  setSpeed(startSpeed);
+  loosePosition(); // as the motor wont home, it doesn't need to respect limits
+
   // Initialize the PID controller in MANUAL mode (it will not control initially)
   myPID.SetMode(MANUAL);  // PID is initially disabled (manual mode)
   myPID.SetOutputLimits(0, 255);  // Set the output limits for PWM (0 to 255)
@@ -70,27 +79,29 @@ void loop() {
     stopPID();
   }
 
-  // Toggle PID controller state based on serial input or condition
+  // Read the communications input and act accordingly
   if (Serial.available()) {
-    char input = Serial.read();  // Read the input character
-    if (input == 's') {  // If 's' is received, stop the PID
+    String input = Serial.readString();  // Read the entire input string
+    input.trim();                        // remove any \r \n whitespace at the end of the String
+    char firstChar = input.charAt(0);    // Get the first character of the string
+    if (firstChar == 's') {  // If 's' is received, stop the PID
       stopPID();
     } 
-    else if (input == 'a') {  // If 'r' is received, start the PID
+    else if (firstChar == 'a') {  // If 'r' is received, start the PID
       startPID();
     }
-    else if (input == 't') {  // If 't' is received, start the autotuning
+    else if (firstChar == 't') {  // If 't' is received, start the autotuning
       if (pidEnabled){stopPID();}
       PID_autotune(T1_Setpoint, autoTuneCycles, autoTuneResult);
     }
-    else if (input == 'z') {  // If 't' is received, set the target tmep
+    else if (firstChar == 'z') {  // If 't' is received, set the target tmep
       setTargetTemp();
     }
-    else if (input == 'p') {  // test printout
+    else if (firstChar == 'p') {  // test printout
       testPrint();
     }
-	else if (input == 'm') {  // test motor
-      testMotor();
+	else if (firstChar == 'm') {  // test motor
+      moveMotor(input);
     }
   }
 
@@ -119,17 +130,86 @@ void loop() {
   }
 }
 
+// this function is called to set the motors new destination
+// if given no input, it will do a test sequence
+// with input String it will set a specific destination (relative or absolute)
+void moveMotor(String inputString = ""){
+  if (inputString == "m") {
+    // no input was given
+    Serial.println("Testing the motor:");
+    testMotor();
+  } else{
+    // the user send an input command
+    bool goodCommand = true;
+    bool absoluteCommand;
+
+    // the command should either start with ma for absolute movement
+    // or mr for "move relatve" 
+    if (inputString.startsWith("ma") ) {
+      absoluteCommand =  true;
+    } else if (inputString.startsWith("mr")){
+      absoluteCommand =  false;
+    } else{ 
+      goodCommand = false;
+      Serial.println("Bad motor command:" + inputString);
+    }
+
+    if (goodCommand){
+      // extract the given number 
+      String numberString = inputString.substring(2);  // select the string after "ma" or "mr"
+
+      // convert the string to a float (if given a number)
+      float number = numberString.toFloat();
+
+      // check wether the number is valid
+      if (number != 0 || numberString == "0") {
+        // the number is valid
+      } else {
+        // no number entered
+        float inputNumber = 0;
+        String questionString;
+        if(absoluteCommand){questionString = "Enter absolute position (in mm):";}
+        else{questionString = "Enter relative distance (in mm):";}
+        Serial.println(questionString);
+        
+        while(true){
+          if (Serial.available() > 0) {
+            inputNumber = Serial.parseFloat();
+          }
+          if(inputNumber != 0){
+            break;
+          }
+        }
+
+        number = inputNumber;
+      }
+
+      // commandType (bool absoluteCommand) and
+      // destination (float number) are known
+      if (absoluteCommand){
+        moveToPosition(number);
+      } else{
+        step_relative(number);
+      }
+    }
+
+    
+
+    Serial.println("Input erhalten: " + inputString);
+  }
+}
+
+// this function performs a test sequence that spins the motor for demonstration
 void testMotor(){
-  setupStepper();
   moveToPosition(100);
   Serial.println("Motor forward...");
   while(isMotorRunning())
   {
     printInfo();
-    delay(100);
+    delay(waitTime);
   }
   moveToPosition(0);
-  Serial.println("Motor forward...");
+  Serial.println("Motor backward...");
 }
 
 float readTemps(){
